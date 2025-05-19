@@ -13,7 +13,7 @@ def run():
     creds = ClientSecretCredential(tenant_id, client_id, client_secret)
     compute_client = ComputeManagementClient(creds, subscription_id)
 
-    df = pd.read_excel("..\VMs.xlsx")
+    df = pd.read_excel("../VMs.xlsx")
 
     for _, row in df.iterrows():
         
