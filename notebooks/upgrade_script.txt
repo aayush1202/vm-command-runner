@@ -1,0 +1,71 @@
+```bash
+#!/bin/bash
+
+# Check if running as root
+if [[ $EUID -ne 0 ]]; then
+  echo "This script must be run as root."
+  exit 1
+fi
+
+# --- Update System Packages ---
+apt update -y
+apt upgrade -y
+
+# --- Remove existing Python 3.11 (if installed via apt) ---
+if python3.11 --version &> /dev/null; then
+  apt remove -y python3.11
+  apt autoremove -y
+fi
+
+# --- Install dependencies for Python 3.12 (if not already present) ---
+apt install -y --no-install-recommends \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libc6-dev \
+    libbz2-dev \
+    libffi-dev \
+    wget
+
+# --- Download Python 3.12 source code ---
+PYTHON_VERSION="3.12.4" # Or the latest 3.12 version
+DOWNLOAD_URL="https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz"
+TEMP_DIR=$(mktemp -d)
+
+wget -q "${DOWNLOAD_URL}" -O "${TEMP_DIR}/python.tgz"
+
+# --- Extract the source code ---
+tar -xzf "${TEMP_DIR}/python.tgz" -C "${TEMP_DIR}"
+
+# --- Build and install Python 3.12 ---
+cd "${TEMP_DIR}/Python-${PYTHON_VERSION}"
+./configure --enable-optimizations
+make -j $(nproc)
+make altinstall
+
+# --- Clean up ---
+cd /
+rm -rf "${TEMP_DIR}"
+
+# --- Verify Installation ---
+python3.12 --version
+if ! python3.12 --version &> /dev/null; then
+  echo "Python 3.12 installation failed."
+  exit 1
+fi
+
+# --- Update alternatives (if needed) ---
+# update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
+# update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
+# --- Optional: Create a symlink for 'python' (use with caution) ---
+# ln -s /usr/bin/python3.12 /usr/bin/python
+
+echo "Python 3.12 installed successfully."
+exit 0
+```

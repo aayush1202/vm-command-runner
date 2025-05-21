@@ -2,3 +2,6 @@ pandas
 openpyxl
 azure-identity
 azure-mgmt-compute
+langchain
+google-generativeai
+langchain-google-genai
