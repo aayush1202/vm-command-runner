@@ -3,6 +3,7 @@ import sys
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 import os
+from llm_agents import command_generator_agent
 
 def run():
     subscription_id = "47444342-5807-4fb9-bd2a-04e628a01966"
@@ -15,11 +16,12 @@ def run():
 
     df = pd.read_excel("VMs.xlsx")
 
+    command = command_generator_agent.generate_script(package="python",  current_version="3.11.9", updated_version="3.12.10", os_type='Linux')
+
     for _, row in df.iterrows():
         
         rg = row["ResourceGroup"]
         vm_name = row["VMName"]
-        command = row["Command"]
 
         vm = compute_client.virtual_machines.get(rg, vm_name)
         os_type = vm.storage_profile.os_disk.os_type
