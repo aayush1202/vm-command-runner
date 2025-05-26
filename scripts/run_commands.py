@@ -3,6 +3,9 @@ import sys
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from llm_agents import command_generator_agent
 
 def run():
