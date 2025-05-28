@@ -1,71 +1,103 @@
 ```bash
 #!/bin/bash
 
-# Check if running as root
-if [[ $EUID -ne 0 ]]; then
-  echo "This script must be run as root."
+# Script to update OpenSSL from 3.0.13 to 3.1.1 on Ubuntu
+
+# Variables
+OPENSSL_VERSION="3.1.1"
+OPENSSL_PACKAGE="openssl"
+TEMP_DIR="/tmp/openssl_update"
+DOWNLOAD_URL="https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
+DOWNLOAD_FILE="${TEMP_DIR}/openssl-${OPENSSL_VERSION}.tar.gz"
+
+# Create temporary directory
+echo "Creating temporary directory: ${TEMP_DIR}"
+mkdir -p "${TEMP_DIR}"
+if [ $? -ne 0 ]; then
+  echo "Failed to create temporary directory."
   exit 1
 fi
 
-# --- Update System Packages ---
-apt update -y
-apt upgrade -y
-
-# --- Remove existing Python 3.11 (if installed via apt) ---
-if python3.11 --version &> /dev/null; then
-  apt remove -y python3.11
-  apt autoremove -y
+# Update package lists
+echo "Updating package lists..."
+apt update
+if [ $? -ne 0 ]; then
+  echo "Failed to update package lists."
+  exit 1
 fi
 
-# --- Install dependencies for Python 3.12 (if not already present) ---
-apt install -y --no-install-recommends \
-    build-essential \
-    libssl-dev \
-    zlib1g-dev \
-    libncursesw5-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    tk-dev \
-    libgdbm-dev \
-    libc6-dev \
-    libbz2-dev \
-    libffi-dev \
-    wget
+# Check if openssl is installed
+echo "Checking if ${OPENSSL_PACKAGE} is installed..."
+if ! dpkg -s ${OPENSSL_PACKAGE} &> /dev/null; then
+  echo "${OPENSSL_PACKAGE} is not installed.  Exiting."
+  exit 1
+fi
 
-# --- Download Python 3.12 source code ---
-PYTHON_VERSION="3.12.4" # Or the latest 3.12 version
-DOWNLOAD_URL="https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz"
-TEMP_DIR=$(mktemp -d)
+# Download the source code
+echo "Downloading OpenSSL source code from: ${DOWNLOAD_URL}"
+wget -q "${DOWNLOAD_URL}" -O "${DOWNLOAD_FILE}"
+if [ $? -ne 0 ]; then
+  echo "Failed to download OpenSSL source code."
+  exit 1
+fi
 
-wget -q "${DOWNLOAD_URL}" -O "${TEMP_DIR}/python.tgz"
+# Extract the source code
+echo "Extracting OpenSSL source code..."
+tar -xzf "${DOWNLOAD_FILE}" -C "${TEMP_DIR}"
+if [ $? -ne 0 ]; then
+  echo "Failed to extract OpenSSL source code."
+  exit 1
+fi
 
-# --- Extract the source code ---
-tar -xzf "${TEMP_DIR}/python.tgz" -C "${TEMP_DIR}"
+# Navigate to the extracted directory
+OPENSSL_SOURCE_DIR="${TEMP_DIR}/openssl-${OPENSSL_VERSION}"
+echo "Navigating to source directory: ${OPENSSL_SOURCE_DIR}"
+cd "${OPENSSL_SOURCE_DIR}"
+if [ $? -ne 0 ]; then
+  echo "Failed to navigate to source directory."
+  exit 1
+fi
 
-# --- Build and install Python 3.12 ---
-cd "${TEMP_DIR}/Python-${PYTHON_VERSION}"
-./configure --enable-optimizations
+# Configure the build
+echo "Configuring OpenSSL build..."
+./config --prefix=/usr --openssldir=/usr/lib/ssl
+if [ $? -ne 0 ]; then
+  echo "Failed to configure OpenSSL build."
+  exit 1
+fi
+
+# Build OpenSSL
+echo "Building OpenSSL..."
 make -j $(nproc)
-make altinstall
-
-# --- Clean up ---
-cd /
-rm -rf "${TEMP_DIR}"
-
-# --- Verify Installation ---
-python3.12 --version
-if ! python3.12 --version &> /dev/null; then
-  echo "Python 3.12 installation failed."
+if [ $? -ne 0 ]; then
+  echo "Failed to build OpenSSL."
   exit 1
 fi
 
-# --- Update alternatives (if needed) ---
-# update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
-# update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+# Install OpenSSL
+echo "Installing OpenSSL..."
+make install
+if [ $? -ne 0 ]; then
+  echo "Failed to install OpenSSL."
+  exit 1
+fi
 
-# --- Optional: Create a symlink for 'python' (use with caution) ---
-# ln -s /usr/bin/python3.12 /usr/bin/python
+# Verify the installation
+echo "Verifying OpenSSL installation..."
+openssl version
+if [ $? -ne 0 ]; then
+  echo "Failed to verify OpenSSL installation."
+  exit 1
+fi
 
-echo "Python 3.12 installed successfully."
+# Clean up temporary directory
+echo "Cleaning up temporary directory: ${TEMP_DIR}"
+rm -rf "${TEMP_DIR}"
+if [ $? -ne 0 ]; then
+  echo "Failed to clean up temporary directory."
+  exit 1
+fi
+
+echo "OpenSSL update completed successfully."
 exit 0
 ```

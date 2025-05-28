@@ -21,6 +21,12 @@ def run():
 
     command = command_generator_agent.generate_script(package="python",  current_version="3.11.9", updated_version="3.12.10", os_type='Linux')
 
+    bash_command = f"""bash -c "$(cat <<'EOF'
+    {command}
+    EOF
+    )"
+    """
+
     for _, row in df.iterrows():
         
         rg = row["ResourceGroup"]
