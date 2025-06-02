@@ -47,7 +47,8 @@ def run():
         cve = row['cve']
         solution = row['solution_summary']
         command = row['command']
-        os_type = row['os_type']
+        os = row['os_type']
+        os_type = 'Linux'
 
         command_lines = command.splitlines()
 
