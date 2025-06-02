@@ -1,0 +1,4 @@
+vm_name,cve,solution_summary,stdOut_command,stdErr_command
+log-test,CVE-2022-0778,Update "OpenSSL" to version 1.1.1n or later,echo "Updating openssl to version 1.1.1n",echo "failed to update openssl to version 1.1.1n" >&2
+log-test,CVE-2021-34527,Update "Windows" to version 20H2 or later,echo "Updating Windows to version 20H2",echo "failed to update Windows to version 20H2" >&2
+log-test,CVE-2021-22918,Update "Linux Kernel" to version 5.4.0 or later,echo "Updating Linux Kernel to version 5.4.0",echo "failed to update Linux Kernel to version 5.4.0" >&2

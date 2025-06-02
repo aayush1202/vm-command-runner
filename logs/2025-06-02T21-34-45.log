@@ -1,0 +1,63 @@
+================================================================================
+
+[2025-06-02T21:35:17.541249] Patch attemp for VM: log-test
+CVE: CVE-2022-0778
+Solution Summary: Update "OpenSSL" to version 1.1.1n or later
+Script used:
+
+echo "Updating openssl to version 1.1.1n"
+echo "failed to update openssl to version 1.1.1n" >&2
+
+[StatusCode]: ProvisioningState/succeeded
+[Level]: Info
+[Message]:
+Enable succeeded: 
+[stdout]
+Updating openssl to version 1.1.1n
+
+[stderr]
+failed to update openssl to version 1.1.1n
+
+================================================================================
+================================================================================
+
+[2025-06-02T21:35:49.247295] Patch attemp for VM: log-test
+CVE: CVE-2021-34527
+Solution Summary: Update "Windows" to version 20H2 or later
+Script used:
+
+echo "Updating Windows to version 20H2"
+echo "failed to update Windows to version 20H2" >&2
+
+[StatusCode]: ProvisioningState/succeeded
+[Level]: Info
+[Message]:
+Enable succeeded: 
+[stdout]
+Updating Windows to version 20H2
+
+[stderr]
+failed to update Windows to version 20H2
+
+================================================================================
+================================================================================
+
+[2025-06-02T21:36:21.217646] Patch attemp for VM: log-test
+CVE: CVE-2021-22918
+Solution Summary: Update "Linux Kernel" to version 5.4.0 or later
+Script used:
+
+echo "Updating Linux Kernel to version 5.4.0"
+echo "failed to update Linux Kernel to version 5.4.0" >&2
+
+[StatusCode]: ProvisioningState/succeeded
+[Level]: Info
+[Message]:
+Enable succeeded: 
+[stdout]
+Updating Linux Kernel to version 5.4.0
+
+[stderr]
+failed to update Linux Kernel to version 5.4.0
+
+================================================================================

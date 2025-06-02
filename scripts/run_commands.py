@@ -3,10 +3,27 @@ import sys
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 import os
+from datetime import datetime
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from llm_agents import command_generator_agent
+def log_result(log_filename, vm_name, cve, solution, script, result=None, error=None):
+    os.makedirs('..\logs', exist_ok=True)
+    log_dir = os.path.join("..", "logs")
+    now = datetime.now().isoformat()
+    log_file = os.path.join(log_dir, log_filename)
+    with open(log_file, 'a') as f:
+        f.write("="*80 + "\n\n")
+        f.write(f"[{now}] Patch attemp for VM: {vm_name}\n")
+        f.write(f"CVE: {cve}\n")
+        f.write(f"Solution Summary: {solution}\n")
+        f.write(f"Script used:\n\n{script}\n")
+        if result:
+            for msg in result.value:
+                f.write(f"\n[StatusCode]: {msg.code}\n")
+                f.write(f"[Level]: {msg.level}\n")
+                f.write(f"[Message]:\n{msg.message}")
+        if error:
+            f.write(f"\n[Exception]: {str(error)}")
+        f.write("\n" + "="*80 + "\n")
 
 def run():
     subscription_id = "47444342-5807-4fb9-bd2a-04e628a01966"
@@ -19,29 +36,24 @@ def run():
 
     df = pd.read_excel("VMs.xlsx")
 
-    
-
-    bash_command = f"""bash -c "$(cat <<'EOF'
-    {command}
-    EOF
-    )"
-    """
+    current_time = datetime.now().isoformat(timespec='seconds').replace(":", "-")
+    log_filename = f"{current_time}.log"
 
     for _, row in df.iterrows():
         
         rg = 'vm-rg-1'
-        vm_name = row["VMName"]
-        os_type = row['OS']
-        package = row['Package']
         updated_version = row['Version']
-        
-        command = command_generator_agent.generate_script(package=package, updated_version=updated_version, os_type=os_type)
+        vm_name = row['vm_name']
+        cve = row['cve']
+        solution = row['solution_summary']
+        command = row['command']
+        os_type = row['os_type']
 
         command_lines = command.splitlines()
 
         vm = compute_client.virtual_machines.get(rg, vm_name)        
 
-        if (os_type.lower() == "linux") or (os_type.lower() == "ubuntu") or (os_type.lower() == "debian") or (os_type.lower() == "redhat"):
+        if (os_type.lower() == "linux"):
             script = {
                 'command_id': 'RunShellScript',
                 'script': command_lines
@@ -55,9 +67,18 @@ def run():
             print(f"Unsupported OS: {os_type}")
             continue
 
-        poller = compute_client.virtual_machines.begin_run_command(rg, vm_name, script)
-        result = poller.result()
-        print(result.value[0].message if result.value else "No output")
+        script =  {
+            'commandId': 'RunShellScript',
+            'script': command_lines
+        }
+
+        try:
+            poller = compute_client.virtual_machines.begin_run_command(rg, vm_name, script)
+            result = poller.result()
+            log_result(log_filename, vm_name, cve, solution, command, result=result, error=None)
+        except Exception as e:
+            log_result(log_filename, vm_name, cve, solution, command, result=None, error=e)
+            continue
 
 if __name__ == "__main__":
     run()
