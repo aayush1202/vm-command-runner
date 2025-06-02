@@ -1,0 +1,52 @@
+```bash
+#!/bin/bash
+
+# Check if running as root
+if [[ $EUID -ne 0 ]]; then
+  echo "This rollback script must be run as root."
+  exit 1
+fi
+
+# --- Rollback: Uninstall Python 3.12 ---
+if python3.12 --version &> /dev/null; then
+  # Remove Python 3.12 using altinstall (which installed as python3.12)
+  # This is safer than trying to remove all files manually.
+  /usr/bin/python3.12 -m ensurepip --upgrade  # Ensure pip is installed
+  apt remove -y python3.12
+  apt autoremove -y
+fi
+
+# --- Rollback: Reinstall Python 3.11 if it was removed ---
+if ! python3.11 --version &> /dev/null; then
+  # Attempt to reinstall python3.11.  This assumes it was installed via apt.
+  apt install -y python3.11
+fi
+
+# --- Rollback: Remove installed dependencies (if not needed by other packages) ---
+apt remove -y --purge \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libc6-dev \
+    libbz2-dev \
+    libffi-dev \
+    wget
+apt autoremove -y
+
+# --- Rollback: Remove symlink (if created) ---
+# if [ -L /usr/bin/python ] && [ "$(readlink /usr/bin/python)" == "/usr/bin/python3.12" ]; then
+#   rm -f /usr/bin/python
+# fi
+
+# --- Rollback: Remove alternatives (if created) ---
+# update-alternatives --remove python /usr/bin/python3.12
+# update-alternatives --remove python3 /usr/bin/python3.12
+
+echo "Python 3.12 rollback completed (may require a reboot to fully revert changes)."
+exit 0
+```

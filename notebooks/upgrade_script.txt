@@ -1,0 +1,51 @@
+```sh
+#!/bin/sh
+
+# Set variables
+OPENSSL_VERSION="3.1.1"
+OPENSSL_TAR="openssl-${OPENSSL_VERSION}.tar.gz"
+OPENSSL_URL="https://www.openssl.org/source/${OPENSSL_TAR}"
+OPENSSL_PREFIX="/usr/local/openssl-${OPENSSL_VERSION}"
+OPENSSL_BIN_PATH="/usr/local/bin"
+
+# Check if openssl is already installed and remove it
+if command -v openssl >/dev/null 2>&1; then
+  openssl_version=$(openssl version | awk '{print $2}')
+  if [ -n "$openssl_version" ] && [ "$openssl_version" != "$OPENSSL_VERSION" ]; then
+    echo "Removing existing openssl..."
+    if dpkg -l | grep -q "openssl"; then
+      apt-get -y remove openssl
+    fi
+  fi
+fi
+
+# Create the install directory
+mkdir -p "$OPENSSL_PREFIX"
+
+# Download the package
+echo "Downloading openssl..."
+wget -O "$OPENSSL_TAR" "$OPENSSL_URL" || exit 1
+
+# Extract the package
+echo "Extracting openssl..."
+tar -xzf "$OPENSSL_TAR" || exit 1
+
+# Build and install
+echo "Building and installing openssl..."
+cd "openssl-${OPENSSL_VERSION}" || exit 1
+
+./config --prefix="$OPENSSL_PREFIX" --openssldir="$OPENSSL_PREFIX/ssl" || exit 1
+make -j "$(nproc)" || exit 1
+make install || exit 1
+
+# Create symlinks
+echo "Creating symlinks..."
+ln -sf "$OPENSSL_PREFIX/bin/openssl" "$OPENSSL_BIN_PATH/openssl" || exit 1
+
+# Clean up
+echo "Cleaning up..."
+cd ..
+rm -rf "openssl-${OPENSSL_VERSION}" "$OPENSSL_TAR"
+
+echo "openssl ${OPENSSL_VERSION} installed successfully."
+```
