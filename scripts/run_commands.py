@@ -28,8 +28,8 @@ def log_result(log_filename, vm_name, cve, solution, script, result=None, error=
 def run():
     subscription_id = "47444342-5807-4fb9-bd2a-04e628a01966"
     tenant_id = "89f9dc47-f591-4759-a287-3b2fe3deca27"
-    client_id = "cc307fff-d83c-4afe-b24f-ca3d9f5142cc"
-    client_secret = "qBS8Q~m7B1BvB4SdIrrNWzLW-KaR~EouvHZk6aTj"
+    client_id = "4032f3bb-7f2a-456a-899c-746f2c3426bb"
+    client_secret = ".Hl8Q~PzMp.EN0zBj2RDOme8BJG31d2RcZcridc."
 
     creds = ClientSecretCredential(tenant_id, client_id, client_secret)
     compute_client = ComputeManagementClient(creds, subscription_id)
