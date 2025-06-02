@@ -6,7 +6,8 @@ import os
 from datetime import datetime
 
 def log_result(log_filename, vm_name, cve, solution, script, result=None, error=None):
-    os.makedirs('logs', exist_ok=True)
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
     now = datetime.now().isoformat()
     log_file = os.path.join(log_dir, log_filename)
     with open(log_file, 'a') as f:
