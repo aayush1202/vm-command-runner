@@ -1,103 +1,51 @@
-```bash
-#!/bin/bash
+```sh
+#!/bin/sh
 
-# Script to update OpenSSL from 3.0.13 to 3.1.1 on Ubuntu
-
-# Variables
+# Set variables
 OPENSSL_VERSION="3.1.1"
-OPENSSL_PACKAGE="openssl"
-TEMP_DIR="/tmp/openssl_update"
-DOWNLOAD_URL="https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
-DOWNLOAD_FILE="${TEMP_DIR}/openssl-${OPENSSL_VERSION}.tar.gz"
+OPENSSL_TAR="openssl-${OPENSSL_VERSION}.tar.gz"
+OPENSSL_URL="https://www.openssl.org/source/${OPENSSL_TAR}"
+OPENSSL_PREFIX="/usr/local/openssl-${OPENSSL_VERSION}"
+OPENSSL_BIN_PATH="/usr/local/bin"
 
-# Create temporary directory
-echo "Creating temporary directory: ${TEMP_DIR}"
-mkdir -p "${TEMP_DIR}"
-if [ $? -ne 0 ]; then
-  echo "Failed to create temporary directory."
-  exit 1
+# Check if openssl is already installed and remove it
+if command -v openssl >/dev/null 2>&1; then
+  openssl_version=$(openssl version | awk '{print $2}')
+  if [ -n "$openssl_version" ] && [ "$openssl_version" != "$OPENSSL_VERSION" ]; then
+    echo "Removing existing openssl..."
+    if dpkg -l | grep -q "openssl"; then
+      apt-get -y remove openssl
+    fi
+  fi
 fi
 
-# Update package lists
-echo "Updating package lists..."
-apt update
-if [ $? -ne 0 ]; then
-  echo "Failed to update package lists."
-  exit 1
-fi
+# Create the install directory
+mkdir -p "$OPENSSL_PREFIX"
 
-# Check if openssl is installed
-echo "Checking if ${OPENSSL_PACKAGE} is installed..."
-if ! dpkg -s ${OPENSSL_PACKAGE} &> /dev/null; then
-  echo "${OPENSSL_PACKAGE} is not installed.  Exiting."
-  exit 1
-fi
+# Download the package
+echo "Downloading openssl..."
+wget -O "$OPENSSL_TAR" "$OPENSSL_URL" || exit 1
 
-# Download the source code
-echo "Downloading OpenSSL source code from: ${DOWNLOAD_URL}"
-wget -q "${DOWNLOAD_URL}" -O "${DOWNLOAD_FILE}"
-if [ $? -ne 0 ]; then
-  echo "Failed to download OpenSSL source code."
-  exit 1
-fi
+# Extract the package
+echo "Extracting openssl..."
+tar -xzf "$OPENSSL_TAR" || exit 1
 
-# Extract the source code
-echo "Extracting OpenSSL source code..."
-tar -xzf "${DOWNLOAD_FILE}" -C "${TEMP_DIR}"
-if [ $? -ne 0 ]; then
-  echo "Failed to extract OpenSSL source code."
-  exit 1
-fi
+# Build and install
+echo "Building and installing openssl..."
+cd "openssl-${OPENSSL_VERSION}" || exit 1
 
-# Navigate to the extracted directory
-OPENSSL_SOURCE_DIR="${TEMP_DIR}/openssl-${OPENSSL_VERSION}"
-echo "Navigating to source directory: ${OPENSSL_SOURCE_DIR}"
-cd "${OPENSSL_SOURCE_DIR}"
-if [ $? -ne 0 ]; then
-  echo "Failed to navigate to source directory."
-  exit 1
-fi
+./config --prefix="$OPENSSL_PREFIX" --openssldir="$OPENSSL_PREFIX/ssl" || exit 1
+make -j "$(nproc)" || exit 1
+make install || exit 1
 
-# Configure the build
-echo "Configuring OpenSSL build..."
-./config --prefix=/usr --openssldir=/usr/lib/ssl
-if [ $? -ne 0 ]; then
-  echo "Failed to configure OpenSSL build."
-  exit 1
-fi
+# Create symlinks
+echo "Creating symlinks..."
+ln -sf "$OPENSSL_PREFIX/bin/openssl" "$OPENSSL_BIN_PATH/openssl" || exit 1
 
-# Build OpenSSL
-echo "Building OpenSSL..."
-make -j $(nproc)
-if [ $? -ne 0 ]; then
-  echo "Failed to build OpenSSL."
-  exit 1
-fi
+# Clean up
+echo "Cleaning up..."
+cd ..
+rm -rf "openssl-${OPENSSL_VERSION}" "$OPENSSL_TAR"
 
-# Install OpenSSL
-echo "Installing OpenSSL..."
-make install
-if [ $? -ne 0 ]; then
-  echo "Failed to install OpenSSL."
-  exit 1
-fi
-
-# Verify the installation
-echo "Verifying OpenSSL installation..."
-openssl version
-if [ $? -ne 0 ]; then
-  echo "Failed to verify OpenSSL installation."
-  exit 1
-fi
-
-# Clean up temporary directory
-echo "Cleaning up temporary directory: ${TEMP_DIR}"
-rm -rf "${TEMP_DIR}"
-if [ $? -ne 0 ]; then
-  echo "Failed to clean up temporary directory."
-  exit 1
-fi
-
-echo "OpenSSL update completed successfully."
-exit 0
+echo "openssl ${OPENSSL_VERSION} installed successfully."
 ```

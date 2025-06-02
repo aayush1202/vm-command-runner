@@ -9,26 +9,29 @@ def load_llm():
         temperature=0.3
     )
 
-def generate_script(package, current_version, updated_version, os_type):
+def generate_script(package, updated_version, os_type):
     llm = load_llm()
     prompt = PromptTemplate(
-        input_variables=["package", "current_version", "updated_version", "os_type"],
+        input_variables=["package", "updated_version", "os_type"],
         template="""
-You are a system administrator assistant. Generate a script to update the package '{package}' from version '{current_version}' to version '{updated_version}' on a '{os_type}' system.
+You are a system administrator assistant. Generate a script to update the package '{package}' to version '{updated_version}' on a '{os_type}' system. There would be a version of the package already installed in the system.
 
-Include:
-- Any dependencies that need to be updated or installed
-- Generate commands for downloading the package from the web if required
-- Add commands to remove the old version if necessary
-- Provide an output message indicating each step that is executing, and if it succeeded of failed, but don't create a separate function for this
-- Include a success of failure message at the end of the script
-- Safe commands for automation
+Requirements:
+- Use POSIX-compliant shell syntax (use `[ ]` instead of `[[ ]]`, avoid bash-only features).
+- Assume that the package is not present in the default repositories.
+- Remove the current package if necessary.
+- Manually install the package from the web.
+- Use parallelized commands where possible, like 'make -j "$(nproc)"'.
+- Ensure the script works under /bin/sh, compatible with Azure VM Run Command.
+- Do not create custom functions.
+- install to /user/local/bin if possible.
+- Do not use sudo, assume the script is run as root.
 
-Return only the script without explanations.
+Return only the shell script with no explanations or markdown.
 """
     )
     chain = LLMChain(llm=llm, prompt=prompt)
-    script = chain.run({"package": package, "current_version": current_version, "updated_version": updated_version, "os_type": os_type}).strip()
+    script = chain.run({"package": package, "updated_version": updated_version, "os_type": os_type}).strip()
 
     output_file = 'upgrade_script.txt'
 

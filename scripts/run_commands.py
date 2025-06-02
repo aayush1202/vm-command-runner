@@ -19,7 +19,7 @@ def run():
 
     df = pd.read_excel("VMs.xlsx")
 
-    command = command_generator_agent.generate_script(package="python",  current_version="3.11.9", updated_version="3.12.10", os_type='Linux')
+    
 
     bash_command = f"""bash -c "$(cat <<'EOF'
     {command}
@@ -29,27 +29,27 @@ def run():
 
     for _, row in df.iterrows():
         
-        rg = row["ResourceGroup"]
+        rg = 'vm-rg-1'
         vm_name = row["VMName"]
+        os_type = row['OS']
+        package = row['Package']
+        updated_version = row['Version']
+        
+        command = command_generator_agent.generate_script(package=package, updated_version=updated_version, os_type=os_type)
 
-        vm = compute_client.virtual_machines.get(rg, vm_name)
-        os_type = vm.storage_profile.os_disk.os_type
+        command_lines = command.splitlines()
 
-        if os_type is None:
-            print(f"VM {vm_name} does not have an OS type.")
-            continue
+        vm = compute_client.virtual_machines.get(rg, vm_name)        
 
-        print(f"Running on {vm_name} ({os_type})...")
-
-        if os_type.lower() == "linux":
+        if (os_type.lower() == "linux") or (os_type.lower() == "ubuntu") or (os_type.lower() == "debian") or (os_type.lower() == "redhat"):
             script = {
                 'command_id': 'RunShellScript',
-                'script': [command]
+                'script': command_lines
             }
         elif os_type.lower() == "windows":
             script = {
                 'command_id': 'RunPowerShellScript',
-                'script': [command]
+                'script': command_lines
             }
         else:
             print(f"Unsupported OS: {os_type}")
