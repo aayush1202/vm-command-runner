@@ -21,3 +21,10 @@ jobs:
 
     - name: Run commands on VMs
       run: python scripts/run_commands.py
+
+    - name: Upload logs to GitHub Artifacts
+      if: always()  # Always run this step, even if the previous step fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: vm-logs
+        path: logs/
