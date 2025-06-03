@@ -33,7 +33,7 @@ Return only the shell script with no explanations or markdown.
     chain = LLMChain(llm=llm, prompt=prompt)
     script = chain.run({"package": package, "updated_version": updated_version, "os_type": os_type}).strip()
 
-    output_file = 'upgrade_script.txt'
+    output_file = '../generated_scripts/upgrade_script_linux.txt'
 
     with open(output_file, 'w') as f:
         f.write(script)

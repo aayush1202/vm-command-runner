@@ -1,0 +1,92 @@
+[2025-06-03T14:58:00.741859] Patch attemp for VM: windows-vm-test
+CVE: CVE-2023-1234
+Solution Summary: Update the package list and install security updates.
+Script used: ```powershell
+# Define variables
+$packageName = "python"
+$packageVersion = "3.11.8"
+$downloadUrl = "https://www.python.org/ftp/python/3.11.8/python-3.11.8-amd64.exe"
+$installerFile = "python-3.11.8-amd64.exe"
+$installPath = "C:\Program Files\Python311" # Assuming default install path
+
+# Download the installer
+Write-Host "Downloading $packageName $packageVersion..."
+try {
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $installerFile -UseBasicParsing
+    Write-Host "Download complete."
+}
+catch {
+    Write-Host "Error downloading installer: $($_.Exception.Message)"
+    exit 1
+}
+
+# Run the installer silently
+Write-Host "Installing $packageName $packageVersion..."
+try {
+    Start-Process -FilePath .\$installerFile -ArgumentList "/quiet InstallAllUsers PrependPath=1 Include_pip=1" -Wait
+    Write-Host "Installation complete."
+}
+catch {
+    Write-Host "Error installing package: $($_.Exception.Message)"
+    exit 1
+}
+
+# Add Python installation directory to PATH if not already present
+$pathVariable = [Environment]::GetEnvironmentVariable("PATH", "Machine")
+if ($pathVariable -notlike "*$installPath*") {
+    Write-Host "Adding Python installation directory to PATH..."
+    try {
+        [Environment]::SetEnvironmentVariable("PATH", "$pathVariable;$installPath", "Machine")
+        Write-Host "PATH updated successfully."
+    }
+    catch {
+        Write-Host "Error updating PATH: $($_.Exception.Message)"
+        exit 1
+    }
+} else {
+    Write-Host "Python installation directory already in PATH."
+}
+
+# Clean up the installer file
+try {
+    Remove-Item -Path $installerFile -Force
+    Write-Host "Installer file removed."
+}
+catch {
+    Write-Host "Error removing installer file: $($_.Exception.Message)"
+}
+
+Write-Host "Script completed."
+```
+
+[StatusCode]: ComponentStatus/StdOut/succeeded
+[Level]: Info
+[Message]:
+Downloading python 3.11.8...
+Download complete.
+Installing python 3.11.8...
+Installation complete.
+Adding Python installation directory to PATH...
+PATH updated successfully.
+Installer file removed.
+Script completed.
+
+[StatusCode]: ComponentStatus/StdErr/succeeded
+[Level]: Info
+[Message]:
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable 
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At C:\Packages\Plugins\Microsoft.CPlat.Core.RunCommandWindows\1.1.18\Downloads\script13.ps1:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At C:\Packages\Plugins\Microsoft.CPlat.Core.RunCommandWindows\1.1.18\Downloads\script13.ps1:57 char:1
++ ```
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (``:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
