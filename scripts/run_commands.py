@@ -66,6 +66,8 @@ def run_command_on_vm(subscription_id, rg_name, vm_name, os_type, commands):
         params
     ).result()
 
+    return result
+
 def get_resource_group_by_vm_name(subscription_id, vm_name):
     compute_client = ComputeManagementClient(credential, subscription_id)
     for vm in compute_client.virtual_machines.list_all():
@@ -126,7 +128,7 @@ def run():
             log_result(log_filename, vm_name, cve, solution, commands, result=result, error=None)
 
         except Exception as e:
-            
+
             log_result(log_filename, vm_name, cve, solution, commands, result=None, error=e)
             print(f"[{vm_name}] Error: {e}")
             continue
