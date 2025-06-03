@@ -5,3 +5,4 @@ azure-mgmt-compute
 langchain
 google-generativeai
 langchain-google-genai
+azure-mgmt-resource
