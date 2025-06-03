@@ -1,0 +1,38 @@
+```sh
+#!/bin/sh
+
+# Set variables
+PACKAGE_NAME="libssl1.1"
+PACKAGE_VERSION="1.1.1l-1ubuntu1"
+DOWNLOAD_URL="http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1l-1ubuntu1_amd64.deb" # Assuming amd64 architecture
+
+# Check if the package is already installed
+if dpkg -s "$PACKAGE_NAME" > /dev/null 2>&1; then
+  # Remove the existing package
+  dpkg -r --force-all "$PACKAGE_NAME"
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to remove existing $PACKAGE_NAME package."
+    exit 1
+  fi
+fi
+
+# Download the package
+wget "$DOWNLOAD_URL" -O /tmp/libssl1.1.deb
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to download $PACKAGE_NAME package."
+  exit 1
+fi
+
+# Install the package
+dpkg -i /tmp/libssl1.1.deb
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to install $PACKAGE_NAME package."
+  exit 1
+fi
+
+# Clean up the downloaded file
+rm /tmp/libssl1.1.deb
+
+echo "Successfully updated $PACKAGE_NAME to $PACKAGE_VERSION"
+exit 0
+```
