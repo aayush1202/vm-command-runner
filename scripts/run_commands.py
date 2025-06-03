@@ -28,8 +28,8 @@ def log_result(log_filename, vm_name, cve, solution, script, result=None, error=
 
 # Azure credentials
 credential = ClientSecretCredential(
-    tenant_id = "89f9dc47-f591-4759-a287-3b2fe3deca27"
-    client_id = "4032f3bb-7f2a-456a-899c-746f2c3426bb"
+    tenant_id = "89f9dc47-f591-4759-a287-3b2fe3deca27",
+    client_id = "4032f3bb-7f2a-456a-899c-746f2c3426bb",
     client_secret = ".Hl8Q~PzMp.EN0zBj2RDOme8BJG31d2RcZcridc."
 )
 #credential = AzureCliCredential()  # Use Azure CLI credentials
