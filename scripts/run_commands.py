@@ -123,8 +123,7 @@ def run():
 
             os_name = os_details.get("os_name", "Unknown")
             os_type = os_details.get("os_type", "Unknown")
-            poller = run_command_on_vm(subscription_id, rg_name, vm_name, os_type, commands)
-            result = poller.result()
+            result = run_command_on_vm(subscription_id, rg_name, vm_name, os_type, commands)
             log_result(log_filename, vm_name, cve, solution, commands, result=result, error=None)
 
         except Exception as e:
